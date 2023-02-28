@@ -71,10 +71,11 @@ if __name__ == '__main__':
     else:
         args.cuda = False
 
-    net = torch.load(os.path.join(args.save_client, f'{args.percent}pruned.pth.tar')) 
-    model_init = ResNet(dataset_class_num[args.offline_dataset],cfg=net['cfg'])
+    net = torch.load(os.path.join(args.save_client, 'model_best.pth.tar')) 
+    model_init = ResNet(dataset_class_num[args.offline_dataset],cfg=net['cfg'])  
+    model_init.load_state_dict(net['state_dict'])
     model = model_init.NE
-    
+    # model.load_state_dict(net['state_dict'])  #change
     if args.cuda:
         model.cuda()
 

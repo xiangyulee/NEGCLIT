@@ -45,8 +45,8 @@ def offline_train(epoch,model,args,optimizer,train_loader):
             updateBN(model,args.s)
         optimizer.step()
         if batch_idx % 10 == 0:
-            print('Train Epoch: {} [{}/{} ({:.1f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(data), len(train_loader.dataset),
+            print('Train Epoch: {}/{}   [{}/{} ({:.1f}%)]\tLoss: {:.6f}'.format(
+                epoch,args.offline_epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
 def test(model,args,test_loader):

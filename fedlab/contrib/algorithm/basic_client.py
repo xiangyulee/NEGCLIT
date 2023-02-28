@@ -144,9 +144,9 @@ class SGDClientTrainer(ClientTrainer):
 
         return inference_input_tensor,pred
 
-    def evaluate(self, model_parameters, test_loader,threshold=50):
+    def evaluate(self, model_parameters, test_loader,threshold=1):
         """Evaluate quality of local model."""
-        """Client trains its local model on local dataset.
+        """Client evaluates its local model on local dataset.
 
         Args:
             model_parameters (torch.Tensor): Serialized model parameters.
@@ -165,34 +165,37 @@ class SGDClientTrainer(ClientTrainer):
         federated_input_target_tensor=[]
         test_target = []
         counter=0
-        print(self._model)
+        # print(self._model)
         with torch.no_grad():
-            for batch_idx, (data, target) in enumerate(test_loader):
+            for data, target in test_loader:
 
                 data, target = data.cuda(), target.cuda()
                 # data, target = Variable(data, volatile=True), Variable(target)
 
                 output = self._model(data)
-                # print(entropy(output))
-                if self.entropy(output)> threshold:
-                    federated_input.append(self._model.features(data).cpu()) # 合并fearure
-                    federated_input_target.append(target.cpu())    
-                else:
-                    # output = self._model(data)
-                    
-                    test_target.append(target)
-                    test_loss += F.cross_entropy(output, target, size_average=False).item() # sum up batch loss
-                    pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
-                    counter+=len(pred)
-                    correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+                for i,single_output in enumerate(output):
+                    # print( i,' th:','entropy:',self.entropy(single_output))
+                    if self.entropy(single_output)> threshold:
+                        federated_input.append(self._model.features(data).cpu().numpy()[i]) # 合并fearure
+                        federated_input_target.append(target.cpu().numpy()[i])    
+                    else:
+                        # output = self._model(data)
+                        
+                        test_target.append(target[i])
+                        test_loss += F.cross_entropy(single_output, target[i], size_average=False).item() # sum up batch loss
+                        pred = single_output.data.max(0, keepdim=True)[1] # get the index of the max log-probability
+                        counter+=len(pred)
+                        correct += pred.eq(target[i].data.view_as(pred)).cpu().sum()
 
             test_loss /= len(test_loader.dataset)
             print('\nClient Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.1f}%)\n'.format(
-                test_loss, correct, counter,
-            100. * correct / counter))
+                test_loss, correct, counter,100. * correct / counter))
             if len(federated_input_target) != 0:
-                federated_input_tensor = torch.cat(federated_input,dim=0)
-                federated_input_target_tensor = torch.cat(federated_input_target,dim=0)
+                federated_input_tensor = torch.tensor(federated_input)
+                federated_input_target_tensor = torch.tensor(federated_input_target)
+                # federated_input_tensor = torch.cat(federated_input,dim=0)
+                # federated_input_target_tensor = torch.cat(federated_input_target,dim=0)
+
             # print('target len : ',len(federated_input_target_tensor))
         correct_rate=100. * correct / counter if counter!=0 else 0
         return correct_rate,federated_input_tensor,federated_input_target_tensor

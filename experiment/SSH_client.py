@@ -69,7 +69,7 @@ def sock_server_data(args):
 
     for filename in os.listdir(args.save_server):
         # print(filename)
-        if filename.find('pruned')!=-1:
+        if filename.find('best')!=-1: # change
             print('server uploading:',filename)
             # print(args.save_server + filename)
             # print(args.save_client)

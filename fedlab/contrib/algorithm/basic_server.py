@@ -131,11 +131,14 @@ class SyncServerHandler(ServerHandler):
         optimizer = optim.SGD(models.parameters(), 
                                 lr=args.online_lr, momentum=args.online_momentum, weight_decay=args.online_weight_decay)
         # print(models)
+        counter=0
+        counter_data_num = 0
         correct = 0
         for batch_idx, (data, target) in enumerate(federated_loader):
             # print('data shape:',data.shape)
             # print('target shape:',target.shape)
             data, target = data.to(self._device), target.to(self._device)
+            counter_data_num += len(data)
             optimizer.zero_grad()
             output = models(data)
             loss = F.cross_entropy(output, target)  # sum up batch loss
@@ -143,12 +146,17 @@ class SyncServerHandler(ServerHandler):
             optimizer.step()
             # pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             pred=output.data.max(1, keepdim=True)[1]
-            # print(pred)
+            # print('pred lengh:',len(pred))
+            # print('pred=9 count:',(pred==9).sum())
+            counter += len(pred)
             correct += pred.eq(target.view_as(pred)).sum().item()
-            if batch_idx % 1 == 0:
-                print('server Test [{}/{} ({:.1f}%)]\t {}'.format(
-                 batch_idx * len(data), len(federated_loader.dataset),
-                100. * batch_idx / len(federated_loader),correct)) 
+        print('server increment:  [{}/{} ({:.1f}%)]\tLoss: {:.6f} Accuracy: {}/{} ({:.1f}%)'.format(
+                counter_data_num, len(federated_loader.dataset),
+                100. * counter_data_num / len(federated_loader.dataset), loss.item(),correct, counter,100. * correct / counter))
+            # if batch_idx % 1 == 0:
+            #     print('server Test [{}/{} ({:.1f}%)]\t {}'.format(
+            #      batch_idx * len(data), len(federated_loader.dataset),
+            #     100. * batch_idx / len(federated_loader),correct)) 
 
     def load(self, payload: List[torch.Tensor]) -> bool:
         """Update global model with collected parameters from clients.
