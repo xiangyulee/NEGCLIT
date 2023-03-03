@@ -17,7 +17,7 @@ def main(args):
         torch.backends.cudnn.benchmark = False 
         #This flag allows you to enable the inbuilt cudnn auto-tuner to find the best algorithm to use for your hardware.
     # offline_run(args)
-    # NE = deploy(args) 
+    # deploy(args) 
     
     online_run(args)
 
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     # Commandline arguments
     parser = argparse.ArgumentParser(description="Network Elements and Graph Cross Layer Inference and Training PyTorch")
     ########################General#########################
-    parser.add_argument('--seed', dest='seed', default=0, type=int,
+    parser.add_argument('--seed', dest='seed', default=1, type=int,
                         help='Random seed')
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
@@ -45,13 +45,13 @@ if __name__ == "__main__":
                         help='training dataset (default: cifar10)')
     parser.add_argument('--s', type=float, default=0.0001,
                         help='scale sparse rate (default: 0)')
-    parser.add_argument('--percent', type=float, default=0.1,
+    parser.add_argument('--percent', type=float, default=0.3,
                         help='prune rate (default: 0.1)')
     parser.add_argument('--offline-batch-size', type=int, default=256, metavar='N',
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=1024, metavar='N',
                         help='input batch size for testing (default: 128)')
-    parser.add_argument('--offline-epoch', type=int, default=50, metavar='N',
+    parser.add_argument('--offline-epoch', type=int, default=80, metavar='N',
                         help='number of epochs to train (default: 10)')
     parser.add_argument('--offline-lr', type=float, default=0.1, metavar='OFFLR',
                         help='learning rate (default: 0.1)')

@@ -7,6 +7,9 @@ from util.name_match import dataset_class_num
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Distbelief training example")
 
+    parser.add_argument('--seed', dest='seed', default=1, type=int,
+                        help='Random seed')
+
     parser.add_argument("--ip", type=str,default='127.0.0.1')
     parser.add_argument("--port", type=int,default=3001)
     parser.add_argument("--world_size", type=int,default=2)
@@ -88,6 +91,7 @@ if __name__ == '__main__':
                                 path='./dataset/cifar10',
                                 dataname='cifar10',
                                 num_clients=args.world_size - 1,
+                                seed=args.seed,
                                 transform=transforms.ToTensor())
     if args.rank == 1:
         dataset.preprocess()

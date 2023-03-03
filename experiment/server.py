@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import shutil
 import torch
 import torch.nn as nn
@@ -15,6 +16,7 @@ from fedlab.core.server.manager import SynchronousServerManager,AsynchronousServ
 from fedlab.core.network import DistNetwork
 from experiment.SSH_client  import sock_server_data
 from util.name_match import dataset_class_num
+import time
 
 def save_checkpoint(state, is_best, filepath): 
     torch.save(state, os.path.join(filepath, 'checkpoint.pth.tar'))
@@ -27,6 +29,7 @@ def updateBN(model,s):
             m.weight.grad.data.add_(s*torch.sign(m.weight.data))  # L1
 
 def offline_train(epoch,model,args,optimizer,train_loader):
+    start=time.time()
     model.train()
     
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -48,6 +51,8 @@ def offline_train(epoch,model,args,optimizer,train_loader):
             print('Train Epoch: {}/{}   [{}/{} ({:.1f}%)]\tLoss: {:.6f}'.format(
                 epoch,args.offline_epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
+    end=time.time()
+    print(f'train time:{end-start}')
 
 def test(model,args,test_loader):
     model.eval()
@@ -115,12 +120,14 @@ def offline_run(args,NE=None):
     # make save dir if not exists
     if args.save and not os.path.exists(args.save):
         os.makedirs(args.save)
+    pre=[]
     for epoch in range(args.offline_epoch):  
         if epoch in [args.offline_epoch*0.5, args.offline_epoch*0.75]:
             for param_group in optimizer.param_groups:
                 param_group['lr'] *= 0.1
         offline_train(epoch,model,args,optimizer,train_loader)
         prec1 = test(model,args,test_loader)
+        pre.append(prec1)
         is_best = prec1 > best_prec1
         best_prec1 = max(prec1, best_prec1)
         save_checkpoint({
@@ -131,6 +138,8 @@ def offline_run(args,NE=None):
             'optimizer': optimizer.state_dict(),
             'cfg':model.cfg,
             }, is_best, filepath=args.save_server)  
+    pre=np.array(pre)
+    np.savetxt('result/offline.txt',pre)
     print("Best accuracy: "+str(best_prec1))
     return model.NE
     

@@ -112,6 +112,7 @@ class SyncServerHandler(ServerHandler):
         kwargs = {'num_workers': 0, 'pin_memory': True} if args.cuda else {}
 
         print('server loading')
+        
         if os.path.exists(os.path.join(args.save_server,'federated_input_target_0.npy')):
             federated_input_target = np.load(os.path.join(args.save_server,'federated_input_target_0.npy'))
             federated_input = np.load(os.path.join(args.save_server,'federated_input_0.npy'))

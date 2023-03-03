@@ -144,7 +144,7 @@ class SGDClientTrainer(ClientTrainer):
 
         return inference_input_tensor,pred
 
-    def evaluate(self, model_parameters, test_loader,threshold=1):
+    def evaluate(self, model_parameters, test_loader,threshold=0.5):
         """Evaluate quality of local model."""
         """Client evaluates its local model on local dataset.
 
@@ -182,7 +182,7 @@ class SGDClientTrainer(ClientTrainer):
                         # output = self._model(data)
                         
                         test_target.append(target[i])
-                        test_loss += F.cross_entropy(single_output, target[i], size_average=False).item() # sum up batch loss
+                        test_loss += F.cross_entropy(single_output, target[i], reduction='sum').item() # sum up batch loss
                         pred = single_output.data.max(0, keepdim=True)[1] # get the index of the max log-probability
                         counter+=len(pred)
                         correct += pred.eq(target[i].data.view_as(pred)).cpu().sum()
@@ -191,7 +191,7 @@ class SGDClientTrainer(ClientTrainer):
             print('\nClient Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.1f}%)\n'.format(
                 test_loss, correct, counter,100. * correct / counter))
             if len(federated_input_target) != 0:
-                federated_input_tensor = torch.tensor(federated_input)
+                federated_input_tensor = torch.tensor(np.array(federated_input))
                 federated_input_target_tensor = torch.tensor(federated_input_target)
                 # federated_input_tensor = torch.cat(federated_input,dim=0)
                 # federated_input_target_tensor = torch.cat(federated_input_target,dim=0)
@@ -201,7 +201,7 @@ class SGDClientTrainer(ClientTrainer):
         return correct_rate,federated_input_tensor,federated_input_target_tensor
 
     def entropy(self,x):
-        p=F.softmax(x)
+        p=F.softmax(x,dim=0)
         p=p.detach().cpu().numpy().reshape(-1)
         Hp = -sum([p[i] * np.log(p[i]) for i in range(len(p))])
         return Hp   
