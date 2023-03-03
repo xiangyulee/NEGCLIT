@@ -145,7 +145,7 @@ class SyncServerHandler(ServerHandler):
             loss = F.cross_entropy(output, target)  # sum up batch loss
             loss.backward()
             optimizer.step()
-            # pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+            # get the index of the max log-probability
             pred=output.data.max(1, keepdim=True)[1]
             # print('pred lengh:',len(pred))
             # print('pred=9 count:',(pred==9).sum())
@@ -154,10 +154,6 @@ class SyncServerHandler(ServerHandler):
         print('server increment:  [{}/{} ({:.1f}%)]\tLoss: {:.6f} Accuracy: {}/{} ({:.1f}%)'.format(
                 counter_data_num, len(federated_loader.dataset),
                 100. * counter_data_num / len(federated_loader.dataset), loss.item(),correct, counter,100. * correct / counter))
-            # if batch_idx % 1 == 0:
-            #     print('server Test [{}/{} ({:.1f}%)]\t {}'.format(
-            #      batch_idx * len(data), len(federated_loader.dataset),
-            #     100. * batch_idx / len(federated_loader),correct)) 
 
     def load(self, payload: List[torch.Tensor]) -> bool:
         """Update global model with collected parameters from clients.

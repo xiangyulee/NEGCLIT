@@ -51,7 +51,7 @@ if __name__ == "__main__":
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=1024, metavar='N',
                         help='input batch size for testing (default: 128)')
-    parser.add_argument('--offline-epoch', type=int, default=1, metavar='N',
+    parser.add_argument('--offline-epoch', type=int, default=20, metavar='N',
                         help='number of epochs to train (default: 10)')
     parser.add_argument('--offline-lr', type=float, default=0.1, metavar='OFFLR',
                         help='learning rate (default: 0.1)')

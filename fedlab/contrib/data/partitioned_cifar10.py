@@ -147,7 +147,7 @@ class PartitionedCIFAR10(FedDataset):
         self.data_indices = partitioner.client_dict
         
         samples, labels = [], []
-        for x, y in trainset:
+        for x, y in testset:
             samples.append(x)
             labels.append(y)
         for id, indices in self.data_indices.items():
