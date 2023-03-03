@@ -15,7 +15,7 @@ from fedlab.contrib.algorithm.fedavg import FedAvgServerHandler
 from fedlab.core.server.manager import SynchronousServerManager,AsynchronousServerManager
 from fedlab.core.network import DistNetwork
 from experiment.SSH_client  import sock_server_data
-from util.name_match import dataset_class_num
+from util.name_match import dataset_class_num,dataset_name
 import time
 
 def save_checkpoint(state, is_best, filepath): 
@@ -87,23 +87,16 @@ def distribute(model,clients):
 def offline_run(args,NE=None):
     # jointly train whole network 
     kwargs = {'num_workers': 0, 'pin_memory': True} if args.cuda else {}
-    if args.offline_dataset == 'cifar10':
-        num_class=10
+    if args.offline_dataset in dataset_name.keys():
+        num_class=dataset_class_num[args.offline_dataset]
         train_loader = torch.utils.data.DataLoader(
-            datasets.CIFAR10('./dataset/cifar10', train=True, download=True,
-                        transform=transforms.ToTensor()),
+            dataset_name[args.offline_dataset]('./dataset/'+args.offline_dataset,
+                                            train=True, download=True,
+                                            transform=transforms.ToTensor()),
             batch_size=args.offline_batch_size, shuffle=True, **kwargs)
         test_loader = torch.utils.data.DataLoader(
-            datasets.CIFAR10('./dataset/cifar10', train=False, transform=transforms.ToTensor()),
-            batch_size=args.test_batch_size, shuffle=True, **kwargs)
-    elif args.dataset == 'cifar100':
-        num_class=100
-        train_loader = torch.utils.data.DataLoader(
-            datasets.CIFAR100('./dataset/cifar100', train=True, download=True,
-                        transform=transforms.ToTensor()),
-            batch_size=args.offline_batch_size, shuffle=True, **kwargs)
-        test_loader = torch.utils.data.DataLoader(
-            datasets.CIFAR100('./dataset/cifar100', train=False, transform=transforms.ToTensor()),
+            dataset_name[args.offline_dataset]('./dataset/'+args.offline_dataset, 
+                                            train=False, transform=transforms.ToTensor()),
             batch_size=args.test_batch_size, shuffle=True, **kwargs)
     else:
         raise ValueError("invalid dataset")

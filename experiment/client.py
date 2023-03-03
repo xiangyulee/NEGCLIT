@@ -10,6 +10,7 @@ from torchvision import transforms
 from fedlab.core.client.manager import PassiveClientManager
 from fedlab.core.network import DistNetwork
 from fedlab.utils.logger import Logger
+from fedlab.contrib.data.partitioned_cifar import PartitionCIFAR
 from fedlab.contrib.data.partitioned_cifar10 import PartitionedCIFAR10
 from fedlab.contrib.algorithm.fedavg import FedAvgClientTrainer
 

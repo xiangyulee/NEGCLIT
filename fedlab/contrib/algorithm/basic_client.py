@@ -189,7 +189,7 @@ class SGDClientTrainer(ClientTrainer):
 
             test_loss /= len(test_loader.dataset)
             print('\nClient Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.1f}%)\n'.format(
-                test_loss, correct, counter,100. * correct / counter))
+                test_loss, correct, counter,100. * correct / counter if counter!=0 else 0))
             if len(federated_input_target) != 0:
                 federated_input_tensor = torch.tensor(np.array(federated_input))
                 federated_input_target_tensor = torch.tensor(federated_input_target)

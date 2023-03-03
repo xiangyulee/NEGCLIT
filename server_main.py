@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', default='resnet', type=str, metavar='MODEL',
                         help='whole model:NE+NG(default:resnet)')           
     ########################Offline Training#########################
-    parser.add_argument('--offline-dataset', type=str, default='cifar10',
+    parser.add_argument('--offline-dataset', type=str, default='cifar100',
                         help='training dataset (default: cifar10)')
     parser.add_argument('--s', type=float, default=0.0001,
                         help='scale sparse rate (default: 0)')
@@ -51,7 +51,7 @@ if __name__ == "__main__":
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=1024, metavar='N',
                         help='input batch size for testing (default: 128)')
-    parser.add_argument('--offline-epoch', type=int, default=80, metavar='N',
+    parser.add_argument('--offline-epoch', type=int, default=1, metavar='N',
                         help='number of epochs to train (default: 10)')
     parser.add_argument('--offline-lr', type=float, default=0.1, metavar='OFFLR',
                         help='learning rate (default: 0.1)')
@@ -67,9 +67,6 @@ if __name__ == "__main__":
 
     parser.add_argument('--round', type=int, default=100)
     parser.add_argument('--sample', type=float, default=1)
-    parser.add_argument('--agent', default='ER',
-                        choices=['ER', 'EWC', 'AGEM', 'CNDPM', 'LWF', 'ICARL', 'GDUMB', 'SCR'],
-                        help='Agent selection  (default: %(default)s)')
     parser.add_argument('--update', default='random', choices=['random', 'GSS', 'ASER'],
                         help='Update method  (default: %(default)s)')
     parser.add_argument('--retrieve', default='random', choices=['MIR', 'random', 'ASER', 'match', 'mem_match'],
@@ -84,13 +81,7 @@ if __name__ == "__main__":
                         help='SGD momentum (default: 0.9)')
     parser.add_argument('--online-weight-decay', '--onwd', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)')
-    ########################ER#########################
-    parser.add_argument('--mem_size', dest='mem_size', default=10000,
-                        type=int,
-                        help='Memory buffer size (default: %(default)s)')
-    parser.add_argument('--eps_mem_batch', dest='eps_mem_batch', default=10,
-                        type=int,
-                        help='Episode memory per batch (default: %(default)s)')
+
     
     
     args = parser.parse_args()

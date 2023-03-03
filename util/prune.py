@@ -4,11 +4,12 @@ import torch
 import torch.nn as nn
 from torchvision import datasets, transforms
 from model.resnet import PrunedResNetBase,channel_selection
+from util.name_match import dataset_name,dataset_class_num
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
-def prune_channel(model,params):
+def prune_channel(model,args):
     # count total channel numbers 
-    percent=params.percent
+    percent=args.percent
     total = 0
     for m in model.modules():
         if isinstance(m, nn.BatchNorm2d):
@@ -48,14 +49,10 @@ def prune_channel(model,params):
     # simple test model after Pre-processing prune (simple set BN scales to zeros)
     def test(model):
         kwargs = {'num_workers': 0, 'pin_memory': True}
-        if params.offline_dataset=='cifar10':
+        if args.offline_dataset in dataset_name.keys():
             test_loader = torch.utils.data.DataLoader(
-                datasets.CIFAR10('./dataset/cifar10', train=False, transform=transforms.ToTensor()),
-                batch_size=128, shuffle=False, **kwargs)
-        elif params.offline_dataset=='cifar100':
-            test_loader = torch.utils.data.DataLoader(
-                datasets.CIFAR10('./dataset/cifar100', train=False, transform=transforms.ToTensor()),
-                batch_size=128, shuffle=False, **kwargs)
+                dataset_name[args.offline_dataset]('./dataset/'+args.offline_dataset, train=False, transform=transforms.ToTensor()),
+                batch_size=args.offline_batch_size, shuffle=False, **kwargs)
         else:
             raise ValueError("invalid dataset")
         model.eval()
@@ -73,7 +70,7 @@ def prune_channel(model,params):
     print("Cfg:")
     print(cfg)
     
-    newmodel = PrunedResNetBase(10,20,  cfg=cfg)# change the classnum and depth if need
+    newmodel = PrunedResNetBase(dataset_class_num[args.offline_dataset],20,  cfg=cfg)# change the classnum and depth if need
     
     newmodel.cuda()
     num_parameters = sum([param.nelement() for param in newmodel.parameters()])
@@ -156,9 +153,9 @@ def prune_channel(model,params):
                 idx0 = np.resize(idx0, (1,))
             m1.weight.data = m0.weight.data[:, idx0].clone()
             m1.bias.data = m0.bias.data.clone()
-    if not os.path.exists(params.save_server):
-        os.mkdir(params.save_server)
-    torch.save({'cfg': cfg, 'state_dict': newmodel.state_dict()}, os.path.join(params.save_server,str(percent)+ 'pruned.pth.tar')) #path change 这里不确定
+    if not os.path.exists(args.save_server):
+        os.mkdir(args.save_server)
+    torch.save({'cfg': cfg, 'state_dict': newmodel.state_dict()}, os.path.join(args.save_server,str(percent)+ 'pruned.pth.tar')) #path change 这里不确定
 
     test(newmodel)
     return newmodel

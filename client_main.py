@@ -2,7 +2,7 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 from experiment.client import *
 import torch
-from util.name_match import dataset_class_num
+from util.name_match import dataset_class_num,online_dataset_name
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Distbelief training example")
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
 
     ########################Offline Training#########################
-    parser.add_argument('--offline-dataset', type=str, default='cifar10',
+    parser.add_argument('--dataset', type=str, default='cifar100',
                         help='training dataset (default: cifar10)')
     parser.add_argument('--s', type=float, default=0.0001,
                         help='scale sparse rate (default: 0)')
@@ -75,7 +75,7 @@ if __name__ == '__main__':
         args.cuda = False
 
     net = torch.load(os.path.join(args.save_client, 'model_best.pth.tar')) 
-    model_init = ResNet(dataset_class_num[args.offline_dataset],cfg=net['cfg'])  
+    model_init = ResNet(dataset_class_num[args.dataset],cfg=net['cfg'])  
     model_init.load_state_dict(net['state_dict'])
     model = model_init.NE
     # model.load_state_dict(net['state_dict'])  #change
@@ -87,12 +87,13 @@ if __name__ == '__main__':
     trainer = FedAvgClientTrainer(model, cuda=args.cuda)
 
 
-    dataset = PartitionedCIFAR10(root='./dataset/cifar10',
-                                path='./dataset/cifar10',
-                                dataname='cifar10',
+    dataset = online_dataset_name[args.dataset](root='./dataset/'+args.dataset,
+                                path='./dataset/'+args.dataset,
+                                dataname=args.dataset,
                                 num_clients=args.world_size - 1,
                                 seed=args.seed,
                                 transform=transforms.ToTensor())
+
     if args.rank == 1:
         dataset.preprocess()
 
