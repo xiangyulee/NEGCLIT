@@ -113,26 +113,31 @@ def offline_run(args,NE=None):
     # make save dir if not exists
     if args.save and not os.path.exists(args.save):
         os.makedirs(args.save)
-    pre=[]
+
     for epoch in range(args.offline_epoch):  
         if epoch in [args.offline_epoch*0.5, args.offline_epoch*0.75]:
             for param_group in optimizer.param_groups:
                 param_group['lr'] *= 0.1
         offline_train(epoch,model,args,optimizer,train_loader)
         prec1 = test(model,args,test_loader)
-        pre.append(prec1)
+
         is_best = prec1 > best_prec1
         best_prec1 = max(prec1, best_prec1)
+        
+        model.grow()
+        print(model)
+        if args.cuda:
+            model.cuda()
         save_checkpoint({
             'epoch': epoch + 1,
             'nclass':num_class,
             'state_dict': model.state_dict(),
+            'NE_state_dict':model.NE.state_dict(),
             'best_prec1': best_prec1,
             'optimizer': optimizer.state_dict(),
             'cfg':model.cfg,
             }, is_best, filepath=args.save_server)  
-    pre=np.array(pre)
-    np.savetxt('result/offline.txt',pre)
+
     print("Best accuracy: "+str(best_prec1))
     return model.NE
     
