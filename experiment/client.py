@@ -3,7 +3,7 @@ import os
 
 import sys
 
-from model.resnet import ResNet
+from model.resnet import ScalableResNet
 import torch
 from util.prune import prune_channel
 from torchvision import transforms
@@ -28,7 +28,7 @@ def inference():
 def deploy(params):
     # split network to NE and NG
     net=torch.load('result/model_best.pth.tar')
-    model=ResNet(net['nclass'])
+    model=ScalableResNet(net['nclass'])
     model.load_state_dict(net["state_dict"])
     NE=model.NE
     # NE.cuda()

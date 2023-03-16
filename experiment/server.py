@@ -7,7 +7,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
-from model.resnet import ResNet
 from util.name_match import model_name
 from util.prune import prune_channel
 from fedlab.utils.logger import Logger
@@ -17,6 +16,7 @@ from fedlab.core.network import DistNetwork
 from experiment.SSH_client  import sock_server_data
 from util.name_match import dataset_class_num,dataset_name
 import time
+import heapq
 
 def save_checkpoint(state, is_best, filepath): 
     torch.save(state, os.path.join(filepath, 'checkpoint.pth.tar'))
@@ -31,7 +31,6 @@ def updateBN(model,s):
 def offline_train(epoch,model,args,optimizer,train_loader):
     start=time.time()
     model.train()
-    
     for batch_idx, (data, target) in enumerate(train_loader):
         if args.cuda:
             data, target = data.cuda(), target.cuda()
@@ -40,10 +39,7 @@ def offline_train(epoch,model,args,optimizer,train_loader):
         output = model(data)
         ee_output=model.NE(data)
         loss = F.cross_entropy(output, target)+F.cross_entropy(ee_output, target)*0.2
-
         loss.backward()
-
-
         if args.s!=0:
             updateBN(model,args.s)
         optimizer.step()
@@ -59,20 +55,28 @@ def test(model,args,test_loader):
     
     test_loss = 0
     correct = 0
+    ee_correct=0
     for data, target in test_loader:
         if args.cuda:
             data, target = data.cuda(), target.cuda()
         # data, target = Variable(data, volatile=True), Variable(target)
         output = model(data)
-        test_loss += F.cross_entropy(output, target, reduction='sum').item() # sum up batch loss
+        ee_output=model.NE(data)
+        # test_loss += F.cross_entropy(output, target, reduction='sum').item() # sum up batch loss
         pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
+        ee_pred= ee_output.data.max(1, keepdim=True)[1] 
         correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+        ee_correct+= ee_pred.eq(target.data.view_as(ee_pred)).cpu().sum()
+
 
     test_loss /= len(test_loader.dataset)
-    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.1f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
+    print('\nTest set:Final Average Accuracy: {}/{} ({:.1f}%)\n'.format(
+         correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
-    return correct / float(len(test_loader.dataset))
+    print('\nTest set:Early Exit Average Accuracy: {}/{} ({:.1f}%)\n'.format(
+         ee_correct, len(test_loader.dataset),
+        100. * ee_correct / len(test_loader.dataset)))
+    return correct / float(len(test_loader.dataset)),ee_correct / float(len(test_loader.dataset))
 
 def distribute(model,clients):
     """
@@ -113,19 +117,23 @@ def offline_run(args,NE=None):
     # make save dir if not exists
     if args.save and not os.path.exists(args.save):
         os.makedirs(args.save)
-
+    min_heap=[0]
+    heapq.heapify(min_heap)
     for epoch in range(args.offline_epoch):  
         if epoch in [args.offline_epoch*0.5, args.offline_epoch*0.75]:
             for param_group in optimizer.param_groups:
                 param_group['lr'] *= 0.1
         offline_train(epoch,model,args,optimizer,train_loader)
-        prec1 = test(model,args,test_loader)
+        prec1,prec2 = test(model,args,test_loader)
 
         is_best = prec1 > best_prec1
         best_prec1 = max(prec1, best_prec1)
-        
-        model.grow()
-        print(model)
+        if len(min_heap)>args.heap_size:
+            if heapq.heappushpop(min_heap,prec1)==prec1 and prec1>prec2:
+                model.grow()   
+                min_heap.clear()
+        else:
+            heapq.heappush(min_heap,prec1)
         if args.cuda:
             model.cuda()
         save_checkpoint({
@@ -133,6 +141,7 @@ def offline_run(args,NE=None):
             'nclass':num_class,
             'state_dict': model.state_dict(),
             'NE_state_dict':model.NE.state_dict(),
+            'growth':model.growth,
             'best_prec1': best_prec1,
             'optimizer': optimizer.state_dict(),
             'cfg':model.cfg,
@@ -146,12 +155,12 @@ def offline_run(args,NE=None):
 def deploy(args):
     # split network to NE and NG
     net=torch.load(os.path.join(args.save_server,'model_best.pth.tar'))
+    model_name[args.model].growth=net['growth']
     model=model_name[args.model](net['nclass'])
-    model.load_state_dict(net["state_dict"])
     NE=model.NE
+    NE.load_state_dict(net["NE_state_dict"])
     NE.cuda()
     NE=prune_channel(NE,args)
-    NG=model.NG
     NE=offline_run(args,NE)
     sock_server_data(args)   # client的存储位置需要提前建立  代码中是本地 所以没有出现问题
     return NE
@@ -168,7 +177,7 @@ def online_run(args,NE=None):
     # print(model) # R
     if NE==None:
         net=torch.load(os.path.join(os.getcwd(),f'result/server/model_best.pth.tar')) #path change
-        model=ResNet(nclasses=dataset_class_num[args.offline_dataset],cfg=net['cfg']) 
+        model=model_name[args.model](nclasses=dataset_class_num[args.offline_dataset],cfg=net['cfg']) 
         model.load_state_dict(net['state_dict'])
         NE=model.NE
     if args.cuda:

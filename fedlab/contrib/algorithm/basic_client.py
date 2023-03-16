@@ -35,6 +35,7 @@ class SGDClientTrainer(ClientTrainer):
         device (str, optional): Assign model/data to the given GPUs. E.g., 'device:0' or 'device:0,1'. Defaults to None.
         logger (Logger, optional): :object of :class:`Logger`.
     """
+    threshold=0.5
     def __init__(self,
                  model:torch.nn.Module,
                  cuda:bool=False,
@@ -144,7 +145,7 @@ class SGDClientTrainer(ClientTrainer):
 
         return inference_input_tensor,pred
 
-    def evaluate(self, model_parameters, test_loader,threshold=0.5):
+    def evaluate(self, model_parameters, test_loader,ee_acc=0.9):
         """Evaluate quality of local model."""
         """Client evaluates its local model on local dataset.
 
@@ -153,7 +154,7 @@ class SGDClientTrainer(ClientTrainer):
         """
         SerializationTool.deserialize_model(
             self._model, model_parameters)  # load parameters
-        # print('self._model',self._model)
+
         self._LOGGER.info("Local train procedure is running")
         self._model.cuda()
         self._model.eval()
@@ -175,7 +176,7 @@ class SGDClientTrainer(ClientTrainer):
                 output = self._model(data)
                 for i,single_output in enumerate(output):
                     # print( i,' th:','entropy:',self.entropy(single_output))
-                    if self.entropy(single_output)> threshold:
+                    if self.entropy(single_output)> SGDClientTrainer.threshold:
                         federated_input.append(self._model.features(data).cpu().numpy()[i]) # 合并fearure
                         federated_input_target.append(target.cpu().numpy()[i])    
                     else:
@@ -193,11 +194,10 @@ class SGDClientTrainer(ClientTrainer):
             if len(federated_input_target) != 0:
                 federated_input_tensor = torch.tensor(np.array(federated_input))
                 federated_input_target_tensor = torch.tensor(federated_input_target)
-                # federated_input_tensor = torch.cat(federated_input,dim=0)
-                # federated_input_target_tensor = torch.cat(federated_input_target,dim=0)
 
-            # print('target len : ',len(federated_input_target_tensor))
         correct_rate=100. * correct / counter if counter!=0 else 0
+        if correct_rate<ee_acc:
+            SGDClientTrainer.threshold+=0.1
         return correct_rate,federated_input_tensor,federated_input_target_tensor
 
     def entropy(self,x):

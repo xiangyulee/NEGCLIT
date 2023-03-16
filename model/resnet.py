@@ -255,30 +255,3 @@ def ResNet_G(nclasses, inplanes,nf=64, bias=True):
         nn.ReLU(),
         nn.Linear(inplanes, nclasses, bias=bias)
     )
-
-class ResNet(nn.Module):
-    growth=0
-    def __init__(self, nclasses ,cfg=None):
-        super(ResNet, self).__init__()
-        self.nclasses=nclasses
-        self.NE=ResNet_E(nclasses,cfg=cfg)
-        self.NG=ResNet_G(nclasses,self.NE.features_planes)
-        for i in range(ResNet.growth):
-            self.NG.add_module('layer'+str(i),
-            nn.Sequential(
-            nn.ReLU(),
-            nn.Linear(self.nclasses, self.nclasses)
-        ))
-        self.cfg=cfg
-    def grow(self,name='layer'):
-            
-        self.NG.add_module(name+str(ResNet.growth),
-        nn.Sequential(
-        nn.ReLU(),
-        nn.Linear(self.nclasses, self.nclasses)
-    ))
-        ResNet.growth+=1
-    def forward(self, x):
-        out = self.NE.features(x)
-        logits = self.NG(out)
-        return logits

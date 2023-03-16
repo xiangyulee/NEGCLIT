@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
 
     ########################Offline Training#########################
-    parser.add_argument('--dataset', type=str, default='cifar100',
+    parser.add_argument('--dataset', type=str, default='cifar10',
                         help='training dataset (default: cifar10)')
     parser.add_argument('--s', type=float, default=0.0001,
                         help='scale sparse rate (default: 0)')
@@ -51,11 +51,12 @@ if __name__ == '__main__':
                         help='SGD momentum (default: 0.9)')
     parser.add_argument('--offline-weight-decay', '--offwd', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)')
-
+    parser.add_argument('--early-exit-acc', type=float, default=0.9, 
+                        help='expected accuracy of early exit branch (default: 0.9)')
     parser.add_argument('--arch', default='resnet', type=str, 
-                            help='architecture to use')
+                        help='architecture to use')
     parser.add_argument('--no-cuda', default=False,  action='store_true',
-                            help='cuda use')
+                        help='cuda use')
     parser.add_argument('--save', default='./result/', type=str, metavar='PATH',
                         help='path to save prune model (default: current directory)')
     parser.add_argument('--save_client', default='result/client/', type=str, metavar='PATH',#path change
@@ -75,7 +76,7 @@ if __name__ == '__main__':
         args.cuda = False
 
     net = torch.load(os.path.join(args.save_client, 'model_best.pth.tar')) 
-    model_init = ResNet(dataset_class_num[args.dataset],cfg=net['cfg'])  
+    model_init = ScalableResNet(dataset_class_num[args.dataset],cfg=net['cfg'])  
     model = model_init.NE
     model.load_state_dict(net['NE_state_dict'])
     

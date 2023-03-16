@@ -21,12 +21,10 @@ from torch.utils.data import DataLoader,Dataset
 import torch.utils.data as Data
 import random
 from copy import deepcopy
-from model.resnet import ResNet
-
 from typing import List
 from ...utils import Logger, Aggregators, SerializationTool
 from ...core.server.handler import ServerHandler
-from util.name_match import dataset_class_num
+from util.name_match import dataset_class_num,model_name
 
 class SyncServerHandler(ServerHandler):
     """Synchronous Parameter Server Handler.
@@ -70,7 +68,8 @@ class SyncServerHandler(ServerHandler):
         self.global_round = global_round
         self.round = 0
         net=torch.load(os.path.join(os.getcwd(),f'result/server/model_best.pth.tar')) #path change
-        _model=ResNet(nclasses=dataset_class_num[args.offline_dataset],cfg=net['cfg']) 
+        model_name[args.model].growth=net['growth']
+        _model=model_name[args.model](nclasses=dataset_class_num[args.offline_dataset],cfg=net['cfg']) 
         _model.load_state_dict(net['state_dict'])
         self.NG = _model.NG
     @property

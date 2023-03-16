@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', default='resnet', type=str, metavar='MODEL',
                         help='whole model:NE+NG(default:resnet)')           
     ########################Offline Training#########################
-    parser.add_argument('--offline-dataset', type=str, default='cifar100',
+    parser.add_argument('--offline-dataset', type=str, default='cifar10',
                         help='training dataset (default: cifar10)')
     parser.add_argument('--s', type=float, default=0.0001,
                         help='scale sparse rate (default: 0)')
@@ -59,6 +59,8 @@ if __name__ == "__main__":
                         help='SGD momentum (default: 0.9)')
     parser.add_argument('--offline-weight-decay', '--offwd', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)')
+    parser.add_argument('--heap-size',  default=10, type=int,
+                        help='minize heap size (default: 10)')
     ########################Online Training#########################
     parser.add_argument('--ip', type=str,default='127.0.0.1')
     parser.add_argument('--port', type=int,default=3001)
