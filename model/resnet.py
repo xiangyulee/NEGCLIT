@@ -235,11 +235,17 @@ class PrunedResNetBase(nn.Module):
         x = self.relu(x)
 
         x = self.avgpool(x)
-        x = x.view(x.size(0),-1)
+        return x
+    
+    def features_tmp(self,x):
+        x = self.conv1(x)
+        x = self.layer1(x)  # 32x32
+        
         return x
 
     def forward(self, x):
         x = self.features(x)
+        x = x.view(x.size(0),-1)
         x = self.fc(x)
         return x
         
@@ -247,11 +253,3 @@ def ResNet_E(nclasses, depth=20,cfg=None, bias=True):
     """network element for client"""
     return PrunedResNetBase(nclasses, depth,cfg=cfg)
 
-def ResNet_G(nclasses, inplanes,nf=64, bias=True):
-    """network graph for server"""
-    # return nn.Linear(inplanes, nclasses, bias=bias)
-    return nn.Sequential(
-        nn.Linear(inplanes, inplanes, bias=bias),
-        nn.ReLU(),
-        nn.Linear(inplanes, nclasses, bias=bias)
-    )

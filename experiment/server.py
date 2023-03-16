@@ -26,7 +26,8 @@ def save_checkpoint(state, is_best, filepath):
 def updateBN(model,s):
     for m in model.modules():
         if isinstance(m, nn.BatchNorm2d):
-            m.weight.grad.data.add_(s*torch.sign(m.weight.data))  # L1
+            if m.weight.grad!=None:
+                m.weight.grad.data.add_(s*torch.sign(m.weight.data))  # L1
 
 def offline_train(epoch,model,args,optimizer,train_loader):
     start=time.time()
@@ -128,7 +129,7 @@ def offline_run(args,NE=None):
 
         is_best = prec1 > best_prec1
         best_prec1 = max(prec1, best_prec1)
-        if len(min_heap)>args.heap_size:
+        if len(min_heap)>args.heap_size:#生长策略
             if heapq.heappushpop(min_heap,prec1)==prec1 and prec1>prec2:
                 model.grow()   
                 min_heap.clear()
