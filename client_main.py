@@ -2,7 +2,7 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 from experiment.client import *
 import torch
-from util.name_match import dataset_class_num,online_dataset_name
+from util.name_match import dataset_class_num,online_dataset_name,model_name
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Distbelief training example")
@@ -21,7 +21,7 @@ if __name__ == '__main__':
                         help='SGD momentum (default: 0.9)')
     parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)')
-    parser.add_argument("--epochs", type=int, default=1)
+    parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                         help='manual epoch number (useful on restarts)')
     parser.add_argument("--batch_size", type=int, default=128)
@@ -29,7 +29,8 @@ if __name__ == '__main__':
     parser.add_argument("--num_class", type=int, default=20)
     parser.add_argument('--log-interval', type=int, default=100, metavar='N',
                         help='how many batches to wait before logging training status')
-
+    parser.add_argument('--model', default='resnet', type=str, metavar='MODEL',
+                        help='whole model:NE+NG(default:resnet)')  
 
 
     ########################Offline Training#########################
@@ -76,7 +77,7 @@ if __name__ == '__main__':
         args.cuda = False
 
     net = torch.load(os.path.join(args.save_client, 'model_best.pth.tar')) 
-    model_init = ScalableResNet(dataset_class_num[args.dataset],cfg=net['cfg'])  
+    model_init = model_name[args.model](dataset_class_num[args.dataset],cfg=net['cfg'])  
     model = model_init.NE
     model.load_state_dict(net['NE_state_dict'])
     

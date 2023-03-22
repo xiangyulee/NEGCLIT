@@ -3,9 +3,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torchvision import datasets, transforms
-from model.resnet import PrunedResNetBase,channel_selection
+from model.resnet_new import PrunedResNetBase,channel_selection
 from util.name_match import dataset_name,dataset_class_num
-os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 def prune_channel(model,args):
     # count total channel numbers 

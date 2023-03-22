@@ -118,8 +118,8 @@ def offline_run(args,NE=None):
     # make save dir if not exists
     if args.save and not os.path.exists(args.save):
         os.makedirs(args.save)
-    min_heap=[0]
-    heapq.heapify(min_heap)
+    # min_heap=[0]
+    # heapq.heapify(min_heap)
     for epoch in range(args.offline_epoch):  
         if epoch in [args.offline_epoch*0.5, args.offline_epoch*0.75]:
             for param_group in optimizer.param_groups:
@@ -129,12 +129,12 @@ def offline_run(args,NE=None):
 
         is_best = prec1 > best_prec1
         best_prec1 = max(prec1, best_prec1)
-        if len(min_heap)>args.heap_size:#生长策略
-            if heapq.heappushpop(min_heap,prec1)==prec1 and prec1>prec2:
-                model.grow()   
-                min_heap.clear()
-        else:
-            heapq.heappush(min_heap,prec1)
+        # if len(min_heap)>args.heap_size:#生长策略
+        #     if heapq.heappushpop(min_heap,prec1)==prec1 and prec1>prec2:
+        #         model.grow()   
+        #         min_heap.clear()
+        # else:
+        #     heapq.heappush(min_heap,prec1)
         if args.cuda:
             model.cuda()
         save_checkpoint({
@@ -142,7 +142,7 @@ def offline_run(args,NE=None):
             'nclass':num_class,
             'state_dict': model.state_dict(),
             'NE_state_dict':model.NE.state_dict(),
-            'growth':model.growth,
+            # 'growth':model.growth,
             'best_prec1': best_prec1,
             'optimizer': optimizer.state_dict(),
             'cfg':model.cfg,
@@ -156,7 +156,7 @@ def offline_run(args,NE=None):
 def deploy(args):
     # split network to NE and NG
     net=torch.load(os.path.join(args.save_server,'model_best.pth.tar'))
-    model_name[args.model].growth=net['growth']
+    # model_name[args.model].growth=net['growth']
     model=model_name[args.model](net['nclass'])
     NE=model.NE
     NE.load_state_dict(net["NE_state_dict"])

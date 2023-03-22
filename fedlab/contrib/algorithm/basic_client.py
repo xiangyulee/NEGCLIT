@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from torch import nn
 import numpy as np
 import os
 import sys
@@ -35,7 +35,8 @@ class SGDClientTrainer(ClientTrainer):
         device (str, optional): Assign model/data to the given GPUs. E.g., 'device:0' or 'device:0,1'. Defaults to None.
         logger (Logger, optional): :object of :class:`Logger`.
     """
-    threshold=0.5
+    # threshold=nn.Parameter(torch.ones(1))
+    threshold=0.6
     def __init__(self,
                  model:torch.nn.Module,
                  cuda:bool=False,
@@ -114,7 +115,7 @@ class SGDClientTrainer(ClientTrainer):
                     ep, batch_idx * len(data), len(train_loader.dataset),
                     100. * batch_idx / len(train_loader), loss.item()))
         self._LOGGER.info("Local train procedure is finished")
-    def inference(self, model_parameters, test_loader,threshold=500):
+    def inference(self, model_parameters, test_loader):
         
         SerializationTool.deserialize_model(
             self._model, model_parameters)  # load parameters
@@ -134,7 +135,7 @@ class SGDClientTrainer(ClientTrainer):
                 # print(data.shape)
                 output = self._model(data)
                 # print(entropy(output))
-                if self.entropy(output)> threshold:
+                if self.entropy(output)> SGDClientTrainer.threshold:
                     federated_input.append(self._model.features(data).cpu()) # 合并fearure
    
                 else:
@@ -197,7 +198,11 @@ class SGDClientTrainer(ClientTrainer):
 
         correct_rate=100. * correct / counter if counter!=0 else 0
         if correct_rate<ee_acc:
-            SGDClientTrainer.threshold+=0.1
+            SGDClientTrainer.threshold+=0.01
+        else:
+            SGDClientTrainer.threshold-=0.01
+        # with open('thre.csv','a') as f:
+        #     f.write(f'acc:{correct_rate},thre:{SGDClientTrainer.threshold}\n')
         return correct_rate,federated_input_tensor,federated_input_target_tensor
 
     def entropy(self,x):

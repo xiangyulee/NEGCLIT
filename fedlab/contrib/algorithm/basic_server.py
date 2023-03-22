@@ -68,7 +68,7 @@ class SyncServerHandler(ServerHandler):
         self.global_round = global_round
         self.round = 0
         net=torch.load(os.path.join(os.getcwd(),f'result/server/model_best.pth.tar')) #path change
-        model_name[args.model].growth=net['growth']
+        # model_name[args.model].growth=net['growth']
         _model=model_name[args.model](nclasses=dataset_class_num[args.offline_dataset],cfg=net['cfg']) 
         _model.load_state_dict(net['state_dict'])
         self.NG = _model.NG
@@ -135,12 +135,13 @@ class SyncServerHandler(ServerHandler):
         counter_data_num = 0
         correct = 0
         for batch_idx, (data, target) in enumerate(federated_loader):
-            # print('data shape:',data.shape)
-            # print('target shape:',target.shape)
+            print('data shape:',data.shape)
+            print('target shape:',target.shape)
             data, target = data.to(self._device), target.to(self._device)
             counter_data_num += len(data)
             optimizer.zero_grad()
             output = models(data)
+            print('out shape:',output.shape)
             loss = F.cross_entropy(output, target)  # sum up batch loss
             loss.backward()
             optimizer.step()
