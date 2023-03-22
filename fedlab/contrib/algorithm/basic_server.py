@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from torch import nn
 import torch.optim as optim
 import os
 import torch
@@ -69,9 +69,12 @@ class SyncServerHandler(ServerHandler):
         self.round = 0
         net=torch.load(os.path.join(os.getcwd(),f'result/server/model_best.pth.tar')) #path change
         # model_name[args.model].growth=net['growth']
-        _model=model_name[args.model](nclasses=dataset_class_num[args.offline_dataset],cfg=net['cfg']) 
+        if 'growth' in net.keys():
+            _model=model_name[args.model](nclasses=dataset_class_num[args.offline_dataset],growth=net['growth'],cfg=net['cfg']) 
+        else:
+            _model=model_name[args.model](nclasses=dataset_class_num[args.offline_dataset],cfg=net['cfg']) 
         _model.load_state_dict(net['state_dict'])
-        self.NG = _model.NG
+        self.NG =_model.NG
     @property
     def downlink_package(self) -> List[torch.Tensor]:
         """Property for manager layer. Server manager will call this property when activates clients."""

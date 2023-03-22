@@ -235,13 +235,14 @@ class PrunedResNetBase(nn.Module):
         x = self.relu(x)
 
         x = self.avgpool(x)
-        return x
-    
-    def features_tmp(self,x):
-        x = self.conv1(x)
-        x = self.layer1(x)  # 32x32
         
         return x
+    
+    # def features_tmp(self,x):
+    #     x = self.conv1(x)
+    #     x = self.layer1(x)  # 32x32
+        
+    #     return x
 
     def forward(self, x):
         x = self.features(x)

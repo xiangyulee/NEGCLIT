@@ -3,9 +3,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torchvision import datasets, transforms
-from model.resnet_new import PrunedResNetBase,channel_selection
+from model.resnet import PrunedResNetBase,channel_selection
 from util.name_match import dataset_name,dataset_class_num
-
+def prune(model,args):
+    pass
 def prune_channel(model,args):
     # count total channel numbers 
     percent=args.percent

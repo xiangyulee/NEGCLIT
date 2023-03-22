@@ -8,13 +8,14 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 from util.name_match import model_name
-from util.prune import prune_channel
+
 from fedlab.utils.logger import Logger
 from fedlab.contrib.algorithm.fedavg import FedAvgServerHandler
 from fedlab.core.server.manager import SynchronousServerManager,AsynchronousServerManager
 from fedlab.core.network import DistNetwork
 from experiment.SSH_client  import sock_server_data
 from util.name_match import dataset_class_num,dataset_name
+from util.method_match import model_weight_lighting
 import time
 import heapq
 
@@ -35,7 +36,7 @@ def offline_train(epoch,model,args,optimizer,train_loader):
     for batch_idx, (data, target) in enumerate(train_loader):
         if args.cuda:
             data, target = data.cuda(), target.cuda()
-        data, target = Variable(data), Variable(target)
+        
         optimizer.zero_grad()
         output = model(data)
         ee_output=model.NE(data)
@@ -118,8 +119,11 @@ def offline_run(args,NE=None):
     # make save dir if not exists
     if args.save and not os.path.exists(args.save):
         os.makedirs(args.save)
-    # min_heap=[0]
-    # heapq.heapify(min_heap)
+
+    if args.train_method=='selfgrow':
+        min_heap=[0]
+        heapq.heapify(min_heap)
+
     for epoch in range(args.offline_epoch):  
         if epoch in [args.offline_epoch*0.5, args.offline_epoch*0.75]:
             for param_group in optimizer.param_groups:
@@ -129,24 +133,36 @@ def offline_run(args,NE=None):
 
         is_best = prec1 > best_prec1
         best_prec1 = max(prec1, best_prec1)
-        # if len(min_heap)>args.heap_size:#生长策略
-        #     if heapq.heappushpop(min_heap,prec1)==prec1 and prec1>prec2:
-        #         model.grow()   
-        #         min_heap.clear()
-        # else:
-        #     heapq.heappush(min_heap,prec1)
+        if args.train_method=='selfgrow':
+            if len(min_heap)>args.heap_size:#生长策略
+                if heapq.heappushpop(min_heap,prec1)==prec1 and prec1>prec2:
+                    model.grow()   
+                    min_heap.clear()
+            else:
+                heapq.heappush(min_heap,prec1)
         if args.cuda:
             model.cuda()
-        save_checkpoint({
-            'epoch': epoch + 1,
-            'nclass':num_class,
-            'state_dict': model.state_dict(),
-            'NE_state_dict':model.NE.state_dict(),
-            # 'growth':model.growth,
-            'best_prec1': best_prec1,
-            'optimizer': optimizer.state_dict(),
-            'cfg':model.cfg,
-            }, is_best, filepath=args.save_server)  
+        if args.train_method=='selfgrow':
+            save_checkpoint({
+                'epoch': epoch + 1,
+                'nclass':num_class,
+                'state_dict': model.state_dict(),
+                'NE_state_dict':model.NE.state_dict(),
+                'growth':model.NG.growth,
+                'best_prec1': best_prec1,
+                'optimizer': optimizer.state_dict(),
+                'cfg':model.cfg,
+                }, is_best, filepath=args.save_server) 
+        else:
+             save_checkpoint({
+                'epoch': epoch + 1,
+                'nclass':num_class,
+                'state_dict': model.state_dict(),
+                'NE_state_dict':model.NE.state_dict(),
+                'best_prec1': best_prec1,
+                'optimizer': optimizer.state_dict(),
+                'cfg':model.cfg,
+                }, is_best, filepath=args.save_server)
 
     print("Best accuracy: "+str(best_prec1))
     return model.NE
@@ -161,7 +177,7 @@ def deploy(args):
     NE=model.NE
     NE.load_state_dict(net["NE_state_dict"])
     NE.cuda()
-    NE=prune_channel(NE,args)
+    NE=model_weight_lighting[args.prune](NE,args)
     NE=offline_run(args,NE)
     sock_server_data(args)   # client的存储位置需要提前建立  代码中是本地 所以没有出现问题
     return NE

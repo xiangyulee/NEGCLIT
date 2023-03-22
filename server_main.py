@@ -39,8 +39,12 @@ if __name__ == "__main__":
     parser.add_argument('--save_server', default='result/server/', type=str, metavar='PATH', #path change
                         help='path to save prune model (default: current directory)')
     parser.add_argument('--model', default='resnet', type=str, metavar='MODEL',
-                        help='whole model:NE+NG(default:resnet)')           
+                        help='whole model:NE+NG(default:resnet)')  
+    parser.add_argument('--prune', default='default', type=str, metavar='PRUNE',
+                        help='model weightlighting(default:none)')           
     ########################Offline Training#########################
+    parser.add_argument('--train-method', default='selfgrow', type=str,
+                        help='selfgrow or autosplit(default:selfgrow)')
     parser.add_argument('--offline-dataset', type=str, default='cifar10',
                         help='training dataset (default: cifar10)')
     parser.add_argument('--s', type=float, default=0.0001,
@@ -51,7 +55,7 @@ if __name__ == "__main__":
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=1024, metavar='N',
                         help='input batch size for testing (default: 128)')
-    parser.add_argument('--offline-epoch', type=int, default=1, metavar='N',
+    parser.add_argument('--offline-epoch', type=int, default=100, metavar='N',
                         help='number of epochs to train (default: 10)')
     parser.add_argument('--offline-lr', type=float, default=0.1, metavar='OFFLR',
                         help='learning rate (default: 0.1)')
@@ -59,7 +63,7 @@ if __name__ == "__main__":
                         help='SGD momentum (default: 0.9)')
     parser.add_argument('--offline-weight-decay', '--offwd', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)')
-    parser.add_argument('--heap-size',  default=5, type=int,
+    parser.add_argument('--heap-size',  default=10, type=int,
                         help='minize heap size (default: 10)')
     ########################Online Training#########################
     parser.add_argument('--ip', type=str,default='127.0.0.1')
