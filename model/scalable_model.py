@@ -18,7 +18,7 @@ class ScalableNG(ScalableNetwork):
         self.NG_pred=nn.Linear(in_planes,nclasses)
         self.NG_block=self.search_space[0](in_planes,in_planes)
         for i in range(len(self.growth)):
-            self.NG_block.add_module('layer'+str(i),
+            self.NG_block.add_module('layer'+self.growth[0:i],
             self.search_space[0](in_planes,in_planes))
     def grow(self,in_planes,name='layer'):   
         self.NG_block.add_module(name+str(self.growth),
@@ -30,12 +30,12 @@ class ScalableNG(ScalableNetwork):
         logits=self.NG_pred(x)
         return logits
     
-class ScalableResNet(ScalableNetwork):
-    def __init__(self, nclasses ,cfg=None):
+class ScalableResNet(nn.Module):
+    def __init__(self, nclasses ,growth="",cfg=None):
         super(ScalableResNet, self).__init__()
         self.nclasses=nclasses
         self.NE=ResNet_E(nclasses,cfg=cfg)
-        self.NG=ScalableNG(self.NE.features_planes,nclasses,growth="",cfg=cfg)
+        self.NG=ScalableNG(self.NE.features_planes,nclasses,growth=growth,cfg=cfg)
 
         self.cfg=cfg
     def grow(self,name='layer'): 

@@ -194,7 +194,10 @@ def online_run(args,NE=None):
     # print(model) # R
     if NE==None:
         net=torch.load(os.path.join(os.getcwd(),f'result/server/model_best.pth.tar')) #path change
-        model=model_name[args.model](nclasses=dataset_class_num[args.offline_dataset],cfg=net['cfg']) 
+        if 'growth' in net.keys():
+            model=model_name[args.model](nclasses=dataset_class_num[args.offline_dataset],growth=net['growth'],cfg=net['cfg']) 
+        else:
+            model=model_name[args.model](nclasses=dataset_class_num[args.offline_dataset],cfg=net['cfg'])
         model.load_state_dict(net['state_dict'])
         NE=model.NE
     if args.cuda:

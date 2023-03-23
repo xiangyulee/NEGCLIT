@@ -16,8 +16,8 @@ def main(args):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False 
         #This flag allows you to enable the inbuilt cudnn auto-tuner to find the best algorithm to use for your hardware.
-    offline_run(args)
-    deploy(args) 
+    # offline_run(args)
+    # deploy(args) 
     
     online_run(args)
 
