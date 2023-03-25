@@ -44,20 +44,20 @@ def auto_split(args,NE=None):
                 param_group['lr'] *= 0.1
         offline_train_weighted(epoch,model,args,optimizer,train_loader)
         prec1= test_weighted(model,args,test_loader)
-        is_best = prec1 > best_prec1
         best_prec1 = max(prec1, best_prec1)
         if args.cuda:
             model.cuda() 
-        save_checkpoint({
-                'epoch': epoch + 1,
+    split_layer=model.split()
+    model.add_head(split_layer)
+    save_checkpoint({
                 'nclass':num_class,
                 'state_dict': model.state_dict(),
-                # 'NE_state_dict':model.NE.state_dict(),
-                'best_prec1': best_prec1,
+                'NE_state_dict':model.NE.state_dict(),
+                'split_layer': split_layer,
                 'optimizer': optimizer.state_dict(),
                 'cfg':model.cfg,
-                }, is_best, filepath=args.save_server)
-
+                },True, filepath=args.save_server)
+    
     print("Best accuracy: "+str(best_prec1))
     return model.NE
 

@@ -16,10 +16,8 @@ def main(args):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False 
         #This flag allows you to enable the inbuilt cudnn auto-tuner to find the best algorithm to use for your hardware.
-    offline_run(args)
-    deploy(args) 
-    
-    online_run(args)
+    offline_run(args)   
+    online_run(args,NE=deploy(args))
 
 
 if __name__ == "__main__":
@@ -55,7 +53,7 @@ if __name__ == "__main__":
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=128, metavar='N',
                         help='input batch size for testing (default: 128)')
-    parser.add_argument('--offline-epoch', type=int, default=60, metavar='N',
+    parser.add_argument('--offline-epoch', type=int, default=1, metavar='N',
                         help='number of epochs to train (default: 10)')
     parser.add_argument('--offline-lr', type=float, default=0.1, metavar='OFFLR',
                         help='learning rate (default: 0.1)')

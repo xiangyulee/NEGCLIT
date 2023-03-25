@@ -1,57 +1,35 @@
 import torch
 import torch.nn as nn
 
-# 假设 NE 和 NG 是两个简单的多层感知器模型
-class NE(nn.Module):
+class SubModelB(nn.Module):
     def __init__(self):
-        super(NE, self).__init__()
-        self.model = nn.Sequential(
-            nn.Linear(10, 64),
-            nn.ReLU(),
-            nn.Linear(64, 128),
-            nn.ReLU(),
-            nn.Linear(128, 256),
-            nn.ReLU(),
-            nn.Linear(256, 512),
-            nn.ReLU()
-        )
+        super(SubModelB, self).__init__()
+        self.layer = nn.Linear(10, 20)
 
     def forward(self, x):
-        return self.model(x)
+        return self.layer(x)
 
-class NG(nn.Module):
+class ModelA(nn.Module):
     def __init__(self):
-        super(NG, self).__init__()
-        self.model = nn.Sequential(
-            nn.Linear(512, 256),
-            nn.ReLU(),
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Linear(128, 64),
-            nn.ReLU(),
-            nn.Linear(64, 32),
-            nn.ReLU()
-        )
+        super(ModelA, self).__init__()
+        self.sub_model_b = SubModelB()
+        
+        # 在这里给子模型B添加一个类方法
+        def new_method(self, x):
+            # print("iho")
+            return self.layer(x) * 2
+        
+        setattr(self.sub_model_b, 'new_method', new_method.__get__(self.sub_model_b))
 
     def forward(self, x):
-        return self.model(x)
+        return self.sub_model_b(x)
 
-ne = NE()
-ng = NG()
-
-# 获取 NE 的最后三层
-ne_layers = list(ne.model.children())[-3:]
-
-# 获取 NG 的第一层之前的所有层
-ng_layers = list(ng.model.children())
-
-# 将 NE 的最后三层插入到 NG 的第一层之前
-new_layers = ne_layers + ng_layers
-
-# 创建一个新的模型，将 NE 的最后三层和 NG 的所有层连接起来
-connected_model = nn.Sequential(*new_layers)
-connected_model2 = nn.Sequential(*list(ne.model.children())[0:-3])
-# 测试新模型
-input_tensor = torch.randn(1, 10)
-output = connected_model(connected_model2(input_tensor))
+# 使用示例
+model_a = ModelA()
+input_tensor = torch.randn(5, 10)
+output = model_a(input_tensor)
 print(output)
+
+# 调用子模型B的新方法
+output_new_method = model_a.sub_model_b.new_method(input_tensor)
+print(output_new_method)
