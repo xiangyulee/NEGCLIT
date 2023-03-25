@@ -196,10 +196,15 @@ class PrunedResNetBase(nn.Module):
         self.layer1 = self._make_layer(block, 16, n, cfg = cfg[0:3*n])
         self.layer2 = self._make_layer(block, 32, n, cfg = cfg[3*n:6*n], stride=2)
         self.layer3 = self._make_layer(block, 64, n, cfg = cfg[6*n:9*n], stride=2)
-        self.bn = nn.BatchNorm2d(64 * block.expansion)
-        self.select = channel_selection(64 * block.expansion)
-        self.relu = nn.ReLU(inplace=True)
-        self.avgpool = nn.AvgPool2d(7)
+        self.head=nn.Sequential(nn.BatchNorm2d(64 * block.expansion),
+                                channel_selection(64 * block.expansion),
+                                nn.ReLU(inplace=True),
+                                nn.AvgPool2d(7))
+        # self.bn = nn.BatchNorm2d(64 * block.expansion)
+        # self.select = channel_selection(64 * block.expansion)
+        # self.relu = nn.ReLU(inplace=True)
+        # self.avgpool = nn.AvgPool2d(7)
+        self.fl=nn.Flatten()
         self.fc=nn.Linear(cfg[-1], num_classes)
 
         for m in self.modules():
@@ -230,23 +235,13 @@ class PrunedResNetBase(nn.Module):
         x = self.layer1(x)  # 32x32
         x = self.layer2(x)
         x = self.layer3(x)  # 8x8
-        x = self.bn(x)
-        x = self.select(x)
-        x = self.relu(x)
-
-        x = self.avgpool(x)
-        
+        x = self.head(x)
+      
         return x
-    
-    # def features_tmp(self,x):
-    #     x = self.conv1(x)
-    #     x = self.layer1(x)  # 32x32
-        
-    #     return x
 
     def forward(self, x):
         x = self.features(x)
-        x = x.view(x.size(0),-1)
+        x = self.fl(x)
         x = self.fc(x)
         return x
         

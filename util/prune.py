@@ -70,7 +70,7 @@ def prune_channel(model,args):
     print("Cfg:")
     print(cfg)
     
-    newmodel = PrunedResNetBase(dataset_class_num[args.offline_dataset],20,  cfg=cfg)# change the classnum and depth if need
+    newmodel = PrunedResNetBase(dataset_class_num[args.offline_dataset], cfg=cfg)# change the classnum and depth if need
     
     newmodel.cuda()
     num_parameters = sum([param.nelement() for param in newmodel.parameters()])
