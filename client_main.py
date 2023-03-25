@@ -29,9 +29,10 @@ if __name__ == '__main__':
     parser.add_argument("--num_class", type=int, default=20)
     parser.add_argument('--log-interval', type=int, default=100, metavar='N',
                         help='how many batches to wait before logging training status')
-    parser.add_argument('--model', default='resnet', type=str, metavar='MODEL',
+    parser.add_argument('--model', default='wresnet', type=str, metavar='MODEL',
                         help='whole model:NE+NG(default:resnet)')  
-
+    parser.add_argument('--train-method', default='autosplit', type=str,
+                        help='candidates: fixedsplit /selfgrow /autosplit')
 
     ########################Offline Training#########################
     parser.add_argument('--dataset', type=str, default='cifar10',
@@ -77,10 +78,12 @@ if __name__ == '__main__':
         args.cuda = False
 
     net = torch.load(os.path.join(args.save_client, 'model_best.pth.tar')) 
-    model_init = model_name[args.model](dataset_class_num[args.dataset],cfg=net['cfg'])  
+    if args.train_method!='autosplit':
+        model_init = model_name[args.model](dataset_class_num[args.dataset],cfg=net['cfg'])      
+    else:
+        model_init = model_name[args.model](dataset_class_num[args.dataset],split_layer=net['split_layer'],cfg=net['cfg'])    
     model = model_init.NE
     model.load_state_dict(net['NE_state_dict'])
-    
     if args.cuda:
         model.cuda()
 

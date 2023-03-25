@@ -36,7 +36,7 @@ class SGDClientTrainer(ClientTrainer):
         logger (Logger, optional): :object of :class:`Logger`.
     """
     # threshold=nn.Parameter(torch.ones(1))
-    threshold=0.6
+    threshold=5
     def __init__(self,
                  model:torch.nn.Module,
                  cuda:bool=False,
