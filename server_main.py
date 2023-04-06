@@ -1,5 +1,5 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 import argparse
 import random
 import numpy as np
@@ -16,7 +16,7 @@ def main(args):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False 
         #This flag allows you to enable the inbuilt cudnn auto-tuner to find the best algorithm to use for your hardware.
-    # offline_run(args)   
+    offline_run(args)   
     online_run(args,NE=deploy(args))
 
 
@@ -36,12 +36,12 @@ if __name__ == "__main__":
                         help='path to save prune model (default: current directory)')
     parser.add_argument('--save_server', default='result/server/', type=str, metavar='PATH', #path change
                         help='path to save prune model (default: current directory)')
-    parser.add_argument('--model', default='wresnet', type=str, metavar='MODEL',
+    parser.add_argument('--model', default='resnet', type=str, metavar='MODEL',
                         help='whole model:NE+NG')  
     parser.add_argument('--prune', default='default', type=str, metavar='PRUNE',
                         help='model weightlighting:default/channel')           
     ########################Offline Training#########################
-    parser.add_argument('--train-method', default='autosplit', type=str,
+    parser.add_argument('--train-method', default='selfgrow', type=str,
                         help='candidates: fixedsplit /selfgrow /autosplit')
     parser.add_argument('--offline-dataset', type=str, default='cifar10',
                         help='training dataset (default: cifar10)')
@@ -53,15 +53,15 @@ if __name__ == "__main__":
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=128, metavar='N',
                         help='input batch size for testing (default: 128)')
-    parser.add_argument('--offline-epoch', type=int, default=10, metavar='N',
+    parser.add_argument('--offline-epoch', type=int, default=100, metavar='N',
                         help='number of epochs to train (default: 10)')
-    parser.add_argument('--offline-lr', type=float, default=0.1, metavar='OFFLR',
+    parser.add_argument('--offline-lr', type=float, default=0.05, metavar='OFFLR',
                         help='learning rate (default: 0.1)')
     parser.add_argument('--offline-momentum', type=float, default=0.9, metavar='M',
                         help='SGD momentum (default: 0.9)')
     parser.add_argument('--offline-weight-decay', '--offwd', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)')
-    parser.add_argument('--heap-size',  default=10, type=int,
+    parser.add_argument('--heap-size',  default=1, type=int,
                         help='minize heap size (default: 10)')
     ########################Online Training#########################
     parser.add_argument('--ip', type=str,default='127.0.0.1')

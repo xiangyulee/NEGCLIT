@@ -37,6 +37,9 @@ class FixedSplitServerHandler(SyncServerHandler):
         if os.path.exists(os.path.join(args.save_server,'federated_input_target_0.npy')):
             federated_input_target = np.load(os.path.join(args.save_server,'federated_input_target_0.npy'))
             federated_input = np.load(os.path.join(args.save_server,'federated_input_0.npy'))
+            if federated_input_target == np.empty(1, 1):
+                print('all data is being recognized on the client side.')
+                return
             print('server data loaded')
         else:
             print("file missing")

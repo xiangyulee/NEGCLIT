@@ -24,6 +24,7 @@ from ...utils import Logger, SerializationTool
 import torch.nn.functional as F
 from torch.autograd import Variable
 from experiment.SSH_client import sock_client_data
+import warnings
 
 
 class SGDClientTrainer(ClientTrainer):
@@ -86,7 +87,13 @@ class SGDClientTrainer(ClientTrainer):
             print('federated_input saving ')
             save_federated_input = np.save(os.path.join(args.save_client,'federated_input_{}.npy'.format(id)),
                                     federated_input.data.numpy())
-            sock_client_data(args)
+        elif len(save_federated_input) == 0:
+            warnings.warn('The data will send to server, but it is null. This also indicates that all data is being recognized on the client side.')
+            save_federated_input_target = np.save(os.path.join(args.save_client,'federated_input_target_{}.npy'.format(id)),
+                                            np.empty((1, 1)))
+            save_federated_input = np.save(os.path.join(args.save_client,'federated_input_{}.npy'.format(id)),
+                                    np.empty((1, 1)))
+        sock_client_data(args,save_federated_input_target,save_federated_input)
 
     def train(self, model_parameters, train_loader) -> None:
         """Client trains its local model on local dataset.

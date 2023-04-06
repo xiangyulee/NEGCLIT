@@ -39,7 +39,7 @@ class SSHConnection(object):
         return result
 
 
-def sock_client_data(args):
+def sock_client_data(args,target,input):
 
 
     ssh = SSHConnection(host=args.ip, port=22, username='root', pwd='linux123') #'1.tcp.vip.cpolar.cn'
@@ -47,6 +47,8 @@ def sock_client_data(args):
 
     ssh.connect()
     # ssh.cmd('mkdir -p /data/model')
+    
+        
     for filename in os.listdir(args.save_client):
         if filename.split('.')[-1] == 'npy':
             print('client uploading:',filename)

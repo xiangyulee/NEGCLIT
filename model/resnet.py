@@ -230,17 +230,18 @@ class PrunedResNetBase(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def features(self,x):
+    def features(self,x,head=False):
         x = self.conv1(x)
         x = self.layer1(x)  # 32x32
         x = self.layer2(x)
         x = self.layer3(x)  # 8x8
-        x = self.head(x)
+        if head:
+            x = self.head(x)
       
         return x
 
     def forward(self, x):
-        x = self.features(x)
+        x = self.features(x,head=True)
         x = self.fl(x)
         x = self.fc(x)
         return x

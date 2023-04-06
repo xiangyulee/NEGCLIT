@@ -157,11 +157,15 @@ def self_grow(args,NE=None):
 
         is_best = prec1 > best_prec1
         best_prec1 = max(prec1, best_prec1)
-        
+        model.grow()
         if len(min_heap)>args.heap_size:#生长策略
-            if heapq.heappushpop(min_heap,prec1)==prec1 and prec1>prec2:
-                model.grow()   
-                min_heap.clear()
+
+            model.grow() 
+            min_heap.clear()
+            # if heapq.heappushpop(min_heap,prec1)==prec1 and prec1>prec2:
+            
+                # model.grow()   
+                # min_heap.clear()
         else:
             heapq.heappush(min_heap,prec1)
         if args.cuda:
