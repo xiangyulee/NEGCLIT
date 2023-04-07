@@ -23,24 +23,25 @@ class ScalableNetwork(nn.Module):
     
 class ScalableNG(ScalableNetwork):
     
-    def __init__(self,in_planes, nclasses ,input_size=[8,8],growth="",cfg=None):
+    def __init__(self,in_planes, nclasses ,NE,input_size=[8,8],growth=[],cfg=None):
         super(ScalableNG, self).__init__()
         self.growth=growth
         self.nclasses=nclasses
         self.NG_pred=nn.Sequential(nn.Flatten(),nn.Linear(in_planes*input_size[0]*input_size[1],nclasses))
         self.NG_block=nn.ModuleList()
-        for i in range(len(self.growth)//3):
-            best_model_index=int(self.growth[3*i])
-            channels=int(self.growth[3*i+1])
-            kernel_sizes=int(self.growth[3*i+2])
+        for i in range(len(self.growth)):
+            best_model_index=self.growth[i][0]
+            channels=self.growth[i][1]
+            kernel_sizes=self.growth[i][2]
             self.NG_block.append(
-            self.search_space[best_model_index](in_planes,channels,kernel_sizes,in_planes))
+            self.search_space[best_model_index](in_planes,channels,kernel_sizes,in_planes,NE,self))
     def grow(self,in_planes,best_model_index,channels,kernel_sizes,NE):
         
         self.NG_block.append(self.search_space[best_model_index](in_planes,channels,kernel_sizes,in_planes,NE,self))
-        self.growth+=str(best_model_index)
-        self.growth+=str(channels)
-        self.growth+=str(kernel_sizes)
+        self.growth.append([])
+        self.growth[-1].append(best_model_index)
+        self.growth[-1].append(channels)
+        self.growth[-1].append(kernel_sizes)
         
     def forward(self, x):
         
@@ -51,11 +52,11 @@ class ScalableNG(ScalableNetwork):
         return logits
     
 class ScalableResNet(nn.Module):
-    def __init__(self, nclasses ,growth="",cfg=None):
+    def __init__(self, nclasses ,growth=[],cfg=None):
         super(ScalableResNet, self).__init__()
         self.nclasses=nclasses
         self.NE=ResNet_E(nclasses,cfg=cfg)
-        self.NG=ScalableNG(self.NE.features_planes,nclasses,growth=growth,cfg=cfg)
+        self.NG=ScalableNG(self.NE.features_planes,nclasses,self.NE,growth=growth,cfg=cfg)
 
         self.cfg=cfg
         
@@ -98,7 +99,7 @@ class ScalableResNet(nn.Module):
         return best_model_index,channels,kernel_sizes
 
 class CNNOptimizerEnv(gym.Env):
-    def __init__(self,dataset, model1,model2,NE,NG,in_channels, num_classes, max_channels_range=(16, 32), max_kernel_size_range=(3, 3), device=torch.device('cuda')):
+    def __init__(self,dataset, model1,model2,NE,NG,in_channels, num_classes, max_channels_range=(4, 9), max_kernel_size_range=(3, 3), device=torch.device('cuda')):
         super(CNNOptimizerEnv, self).__init__()
 
         self.model1 = model1

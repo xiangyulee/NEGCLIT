@@ -37,7 +37,7 @@ class SGDClientTrainer(ClientTrainer):
         logger (Logger, optional): :object of :class:`Logger`.
     """
     # threshold=nn.Parameter(torch.ones(1))
-    threshold=5
+    threshold=1
     def __init__(self,
                  model:torch.nn.Module,
                  cuda:bool=False,
@@ -87,7 +87,7 @@ class SGDClientTrainer(ClientTrainer):
             print('federated_input saving ')
             save_federated_input = np.save(os.path.join(args.save_client,'federated_input_{}.npy'.format(id)),
                                     federated_input.data.numpy())
-        elif len(save_federated_input) == 0:
+        elif len(federated_input_target) == 0:
             warnings.warn('The data will send to server, but it is null. This also indicates that all data is being recognized on the client side.')
             save_federated_input_target = np.save(os.path.join(args.save_client,'federated_input_target_{}.npy'.format(id)),
                                             np.empty((1, 1)))

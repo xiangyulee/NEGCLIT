@@ -29,9 +29,9 @@ if __name__ == '__main__':
     parser.add_argument("--num_class", type=int, default=20)
     parser.add_argument('--log-interval', type=int, default=100, metavar='N',
                         help='how many batches to wait before logging training status')
-    parser.add_argument('--model', default='wresnet', type=str, metavar='MODEL',
+    parser.add_argument('--model', default='resnet', type=str, metavar='MODEL',
                         help='whole model:NE+NG(default:resnet)')  
-    parser.add_argument('--train-method', default='autosplit', type=str,
+    parser.add_argument('--train-method', default='selfgrow', type=str,
                         help='candidates: fixedsplit /selfgrow /autosplit')
 
     ########################Offline Training#########################

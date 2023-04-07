@@ -47,8 +47,8 @@ def auto_split(args,NE=None):
         best_prec1 = max(prec1, best_prec1)
         if args.cuda:
             model.cuda() 
-    split_layer=model.split()
-    model.add_head(split_layer)
+    
+    split_layer=model.add_head_split()
     save_checkpoint({
                 'nclass':num_class,
                 'state_dict': model.state_dict(),
@@ -158,16 +158,14 @@ def self_grow(args,NE=None):
         is_best = prec1 > best_prec1
         best_prec1 = max(prec1, best_prec1)
         model.grow()
-        if len(min_heap)>args.heap_size:#生长策略
+        # if len(min_heap)>args.heap_size:#生长策略
 
-            model.grow() 
-            min_heap.clear()
-            # if heapq.heappushpop(min_heap,prec1)==prec1 and prec1>prec2:
+        #     if heapq.heappushpop(min_heap,prec1)==prec1 and prec1>prec2:
             
-                # model.grow()   
-                # min_heap.clear()
-        else:
-            heapq.heappush(min_heap,prec1)
+        #         model.grow()   
+        #         min_heap.clear()
+        # else:
+        #     heapq.heappush(min_heap,prec1)
         if args.cuda:
             model.cuda()
         save_checkpoint({

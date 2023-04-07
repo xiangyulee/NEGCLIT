@@ -24,7 +24,7 @@ if __name__ == "__main__":
     # Commandline arguments
     parser = argparse.ArgumentParser(description="Network Elements and Graph Cross Layer Inference and Training PyTorch")
     ########################General#########################
-    parser.add_argument('--seed', dest='seed', default=1, type=int,
+    parser.add_argument('--seed', dest='seed', default=0, type=int,
                         help='Random seed')
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
@@ -53,9 +53,9 @@ if __name__ == "__main__":
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=128, metavar='N',
                         help='input batch size for testing (default: 128)')
-    parser.add_argument('--offline-epoch', type=int, default=100, metavar='N',
+    parser.add_argument('--offline-epoch', type=int, default=1, metavar='N',
                         help='number of epochs to train (default: 10)')
-    parser.add_argument('--offline-lr', type=float, default=0.05, metavar='OFFLR',
+    parser.add_argument('--offline-lr', type=float, default=0.001, metavar='OFFLR',
                         help='learning rate (default: 0.1)')
     parser.add_argument('--offline-momentum', type=float, default=0.9, metavar='M',
                         help='SGD momentum (default: 0.9)')

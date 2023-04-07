@@ -42,6 +42,7 @@ class SimpleCNN(nn.Module):
         # Determine the output shape of the convolutional layers
         test_input = torch.randn(1,3,*input_size)
         test_input=test_input.to(device)
+        NE.to(device)
         test_input=NE.features(test_input)
         for layer in NG.NG_block:
             test_input=layer(test_input)

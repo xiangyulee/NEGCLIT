@@ -35,7 +35,7 @@ class WeightedResNet(nn.Module):
         for i in range(self.num_heads):
             self.ee.append(EarlyExitBranch(in_features[i],nclasses))
         if split_layer!=-1:
-            self.add_head(split_layer)
+            self.add_head_split(split_layer)
         
     # 计算每个早退分支输入特征数
     def compute_in(self,input_shape=[]):
@@ -58,7 +58,7 @@ class WeightedResNet(nn.Module):
         NG_layer=list(self.ALL.children())[max_index+1:]
         self.NG=nn.Sequential(*NG_layer)
         return max_index
-    def add_head(self,split_layer):
+    def add_head_split(self,split_layer=-1):
         index=self.split(split_layer)
         self.NE.add_module('pre_head',self.ee[index])
         def features(self,x):
@@ -68,6 +68,7 @@ class WeightedResNet(nn.Module):
                 x=layer(x)
             return x
         setattr(self.NE, 'features', features.__get__(self.NE))
+        return index
     def forward(self,x):
         if not self.NE and not self.NG:
             x=self.ALL(x)
