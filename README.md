@@ -7,7 +7,7 @@
 
 ## Background
 
-NEGCLIT (Network Elements and Graph Cross Layer Inference and Training) is a federated learning framework to enable users to train an early exit network online,such that both client and server can make prediction. 
+
 
 |![overview](imgs/NEG.png)|
 |:--:|
@@ -33,10 +33,19 @@ pip install -r requirements.txt  # install
 </details>
 
 <details open>
-<summary>Run</summary>
+<summary>run method 1</summary>
 
 ```bash
-bash launch.sh
+bash launch_ex1.sh
+```
+
+</details>
+
+<details open>
+<summary>run method 2</summary>
+
+```bash
+bash launch_ex2.sh
 ```
 
 </details>

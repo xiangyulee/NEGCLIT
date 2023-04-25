@@ -40,7 +40,7 @@ class SSHConnection(object):
 def sock_server_data(args):
 
 
-    ssh = SSHConnection(host=args.ip, port=22, username='root', pwd='linux123') #'1.tcp.vip.cpolar.cn'
+    ssh = SSHConnection(host=args.ip, port=22, username=args.username, pwd=args.password) #'1.tcp.vip.cpolar.cn'
     # ssh = SSHConnection(host=args.ip, port=args.port, username='root', pwd='linux123')
 
     ssh.connect()

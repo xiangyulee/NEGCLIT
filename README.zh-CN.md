@@ -8,11 +8,11 @@
 
 ## 背景
 
-NEGCLIT (Network Elements and Graph Cross Layer Inference and Training)是一个支持在线训练早退网络的联邦学习框架，它的设备端和云端均可输出预测结果。
+
 
 |![overview](imgs/NEG.png)|
 |:--:|
-|图 1: 智能网元与网图关系|
+|图 1: 智能网元与网图关系
 ## 开始
 
 NEGCLIT 可以部署在单机或者集群上，选择你需要的部署方法。
@@ -33,10 +33,19 @@ pip install -r requirements.txt  # install
 
 </details>
 <details open>
-<summary>运行</summary>
+<summary>运行方案1</summary>
 
 ```bash
-bash launch.sh
+bash launch_ex1.sh
+```
+
+</details>
+
+<details open>
+<summary>运行方案2</summary>
+
+```bash
+bash launch_ex2.sh
 ```
 
 </details>

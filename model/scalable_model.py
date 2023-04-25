@@ -57,8 +57,8 @@ class ScalableResNet(nn.Module):
         self.nclasses=nclasses
         self.NE=ResNet_E(nclasses,cfg=cfg)
         self.NG=ScalableNG(self.NE.features_planes,nclasses,self.NE,growth=growth,cfg=cfg)
-
         self.cfg=cfg
+        self.threshold = torch.ones(1)
         
 
     def grow(self): 

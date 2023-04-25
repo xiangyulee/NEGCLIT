@@ -178,6 +178,7 @@ class PrunedBottleneck(nn.Module):
 class PrunedResNetBase(nn.Module):
 
     def __init__(self, num_classes,depth=20, in_ch=3, cfg=None):
+        
         super(PrunedResNetBase, self).__init__()
         assert (depth - 2) % 9 == 0, 'depth should be 9n+2'
         n = (depth - 2) // 9
@@ -187,7 +188,7 @@ class PrunedResNetBase(nn.Module):
             # Construct config variable.
             cfg = [[16, 16, 16], [64, 16, 16]*(n-1), [64, 32, 32], [128, 32, 32]*(n-1), [128, 64, 64], [256, 64, 64]*(n-1), [256]]
             cfg = [item for sub_list in cfg for item in sub_list]
-
+        
         self.inplanes = 16
         self.features_planes=cfg[-1]
 

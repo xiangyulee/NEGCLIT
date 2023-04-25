@@ -31,6 +31,7 @@ class WeightedResNet(nn.Module):
         self.NE=None
         self.NG=None
         self.ee=[]
+        
         in_features=self.compute_in(input_shape)
         for i in range(self.num_heads):
             self.ee.append(EarlyExitBranch(in_features[i],nclasses))

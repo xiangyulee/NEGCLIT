@@ -49,11 +49,13 @@ if __name__ == "__main__":
                         help='scale sparse rate (default: 0)')
     parser.add_argument('--percent', type=float, default=0.3,
                         help='prune rate (default: 0.1)')
+    parser.add_argument('--expect-acc', type=float, default=0.9,
+                        help='NE expected acc (default: 0.9)')
     parser.add_argument('--offline-batch-size', type=int, default=64, metavar='N',
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=128, metavar='N',
                         help='input batch size for testing (default: 128)')
-    parser.add_argument('--offline-epoch', type=int, default=1, metavar='N',
+    parser.add_argument('--offline-epoch', type=int, default=80, metavar='N',
                         help='number of epochs to train (default: 10)')
     parser.add_argument('--offline-lr', type=float, default=0.001, metavar='OFFLR',
                         help='learning rate (default: 0.1)')
@@ -61,11 +63,13 @@ if __name__ == "__main__":
                         help='SGD momentum (default: 0.9)')
     parser.add_argument('--offline-weight-decay', '--offwd', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)')
-    parser.add_argument('--heap-size',  default=1, type=int,
+    parser.add_argument('--heap-size',  default=10, type=int,
                         help='minize heap size (default: 10)')
     ########################Online Training#########################
     parser.add_argument('--ip', type=str,default='127.0.0.1')
     parser.add_argument('--port', type=int,default=3001)
+    parser.add_argument("--username", type=str,default='root')
+    parser.add_argument("--password", type=str,default='linux123')
     parser.add_argument('--world_size', type=int,default=2)
     parser.add_argument('--ethernet', type=str, default=None)
 

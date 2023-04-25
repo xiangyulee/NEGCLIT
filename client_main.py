@@ -12,6 +12,8 @@ if __name__ == '__main__':
 
     parser.add_argument("--ip", type=str,default='127.0.0.1')
     parser.add_argument("--port", type=int,default=3001)
+    parser.add_argument("--username", type=str,default='root')
+    parser.add_argument("--password", type=str,default='linux123')
     parser.add_argument("--world_size", type=int,default=2)
     parser.add_argument("--rank", type=int,default=1)
     parser.add_argument("--ethernet", type=str, default=None)
