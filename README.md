@@ -34,6 +34,7 @@ pip install -r requirements.txt  # install
 
 <details open>
 <summary>run method 1</summary>
+Note: Be sure to modify the "username" and "password" in the launch script before running it.
 
 ```bash
 bash launch_ex1.sh
@@ -52,11 +53,13 @@ bash launch_ex2.sh
 
 
 ### Cluster deployment
+
+To be updated.
 ## Documentation
 ### NEGCLIT Design 
 
 - [Workflow](./doc/workflow/README.md)
-- [Components](./doc/component/README.md)
+
 ### Developer Resources
 
 - [Developer Guide for NEGCLIT](./doc/develop//README.md)

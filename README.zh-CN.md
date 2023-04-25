@@ -34,6 +34,7 @@ pip install -r requirements.txt  # install
 </details>
 <details open>
 <summary>运行方案1</summary>
+注意：运行前一定要修改launch脚本中的usrname和password
 
 ```bash
 bash launch_ex1.sh
@@ -53,11 +54,12 @@ bash launch_ex2.sh
 
 
 ### 集群部署
+待更新。
 ## 文档
 ### NEGCLIT 设计
 
 - [工作流](./doc/workflow/README.zh_CN.md)
-- [组件](./doc/component/README.zh_CN.md)
+
 ### 开发者资源
 
 - [开发者向导](./doc/develop//README.zh_CN.md)
