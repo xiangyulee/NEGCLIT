@@ -1,5 +1,5 @@
-torch==1.13.1
-torchvision==0.14.1
-pandas==1.5.3
-paramiko==3.0.0
-gym==0.21.0
+torch
+torchvision
+pandas
+paramiko
+gym
