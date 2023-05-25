@@ -10,6 +10,7 @@ from stable_baselines3 import PPO,DQN
 from stable_baselines3.common.callbacks import EvalCallback,StopTrainingOnNoModelImprovement,StopTrainingOnRewardThreshold,StopTrainingOnMaxEpisodes
 from model.resnet import ResNet_E,BasicBlock,Bottleneck
 from model.block import SimpleCNN,SEBlockCNN
+from model.transformer import Transformer_E
 
 class ScalableNetwork(nn.Module):
     def __init__(self) -> None:
@@ -21,10 +22,40 @@ class ScalableNetwork(nn.Module):
     def grow(self):
         raise NotImplementedError()
     
-class ScalableNG(ScalableNetwork):
+class ScalableResNetNG(ScalableNetwork):
     
     def __init__(self,in_planes, nclasses ,NE,input_size=[8,8],growth=[],cfg=None):
-        super(ScalableNG, self).__init__()
+        super(ScalableResNetNG, self).__init__()
+        self.growth=growth
+        self.nclasses=nclasses
+        self.NG_pred=nn.Sequential(nn.Flatten(),nn.Linear(in_planes*input_size[0]*input_size[1],nclasses))
+        self.NG_block=nn.ModuleList()
+        for i in range(len(self.growth)):
+            best_model_index=self.growth[i][0]
+            channels=self.growth[i][1]
+            kernel_sizes=self.growth[i][2]
+            self.NG_block.append(
+            self.search_space[best_model_index](in_planes,channels,kernel_sizes,in_planes,NE,self))
+    def grow(self,in_planes,best_model_index,channels,kernel_sizes,NE):
+        
+        self.NG_block.append(self.search_space[best_model_index](in_planes,channels,kernel_sizes,in_planes,NE,self))
+        self.growth.append([])
+        self.growth[-1].append(best_model_index)
+        self.growth[-1].append(channels)
+        self.growth[-1].append(kernel_sizes)
+        
+    def forward(self, x):
+        
+        for layer in self.NG_block:
+            x = layer(x)
+        
+        logits=self.NG_pred(x)
+        return logits
+    
+class ScalableTransformerNG(ScalableNetwork):
+    
+    def __init__(self,in_planes, nclasses ,NE,input_size=[8,8],growth=[],cfg=None):
+        super(ScalableResNetNG, self).__init__()
         self.growth=growth
         self.nclasses=nclasses
         self.NG_pred=nn.Sequential(nn.Flatten(),nn.Linear(in_planes*input_size[0]*input_size[1],nclasses))
@@ -56,7 +87,54 @@ class ScalableResNet(nn.Module):
         super(ScalableResNet, self).__init__()
         self.nclasses=nclasses
         self.NE=ResNet_E(nclasses,cfg=cfg)
-        self.NG=ScalableNG(self.NE.features_planes,nclasses,self.NE,growth=growth,cfg=cfg)
+        self.NG=ScalableResNetNG(self.NE.features_planes,nclasses,self.NE,growth=growth,cfg=cfg)
+        self.cfg=cfg
+        self.threshold = torch.ones(1)
+        
+
+    def grow(self): 
+        in_planes=self.NE.features_planes     
+        best_model_index,channels,kernel_sizes = self.choose_BestModel()
+        self.NG.grow(in_planes,best_model_index,channels,kernel_sizes,self.NE)
+    def forward(self, x):
+        x = self.NE.features(x)
+        x = self.NG(x)
+        return x
+    def choose_BestModel(self):
+        cifar_transform = Compose([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+            
+        dataset = CIFAR10(root='./dataset/cifar10', train=True, download=True, transform=cifar_transform)  # 加载数据集
+        env = CNNOptimizerEnv(dataset,model1=self.NG.search_space[0],model2=self.NG.search_space[1],NE=self.NE,NG=self.NG,in_channels=256, num_classes=self.NE.features_planes)
+        model = DQN("MlpPolicy", env, verbose=1)
+        stop_callback = StopTrainingOnNoModelImprovement(max_no_improvement_evals=2, min_evals=2)
+        # stop_callback = StopTrainingOnMaxEpisodes(max_episodes=2)  # 设置寻优的提前退出
+        callback = EvalCallback(env, best_model_save_path=None, log_path=None, eval_freq=10, deterministic=True, 
+                                render=False,callback_on_new_best=stop_callback)
+
+        model.learn(total_timesteps=1,callback=callback) 
+
+        best_action = model.action_space.sample()  # Initialize with a random action
+        best_reward = -1  # Initialize with a low reward
+        obs = env.reset()
+
+        for _ in range(1):  # Try several actions to find the best one
+            action, _states = model.predict(obs, deterministic=True)
+            _, reward, _, _ = env.step(action)
+            if reward > best_reward:
+                best_reward = reward
+                best_action = action
+
+        channels,kernel_sizes = env.decode_action(best_action)
+        best_model_index = env.best_model_index
+        # print(best_model)
+        return best_model_index,channels,kernel_sizes
+    
+class ScalableTransformer(nn.Module):
+    def __init__(self, nclasses ,growth=[],cfg=None):
+        super(ScalableResNet, self).__init__()
+        self.nclasses=nclasses
+        self.NE=ResNet_E(nclasses,cfg=cfg)
+        self.NG=ScalableResNetNG(self.NE.features_planes,nclasses,self.NE,growth=growth,cfg=cfg)
         self.cfg=cfg
         self.threshold = torch.ones(1)
         

@@ -87,6 +87,74 @@ class WeightedResNet(nn.Module):
         return y
 
 
+class WeightedTransformer(nn.Module):
+    def __init__(self, nclasses,split_layer=-1,input_shape=[1,3,32,32],cfg=None):
+        super().__init__()
+        self.ALL=ResNet_E(nclasses,cfg=cfg)
+        self.cfg=cfg
+        self.num_heads=count_layers(self.ALL)
+        self.ws=nn.Parameter(
+                torch.zeros(self.num_heads, dtype=torch.float, requires_grad=True))
+        self.layer_penalties = torch.arange(0.0, self.num_heads) + 1.0
+        self.NE=None
+        self.NG=None
+        self.ee=[]
+        
+        in_features=self.compute_in(input_shape)
+        for i in range(self.num_heads):
+            self.ee.append(EarlyExitBranch(in_features[i],nclasses))
+        if split_layer!=-1:
+            self.add_head_split(split_layer)
+        
+    # 计算每个早退分支输入特征数
+    def compute_in(self,input_shape=[]):
+        in_features=[1]*self.num_heads
+        if input_shape:
+            input_data = torch.randn(*input_shape)
+            for i,sub in enumerate(self.ALL.children()):
+                input_data=sub(input_data)
+                in_features[i]=input_data.numel()
+        return in_features
+    def split(self,split_layer=-1):
+        # 获取最大值及其下标
+        if split_layer==-1:
+            max_value, max_index = torch.max(self.ws, dim=0)  
+        else:
+            max_index=split_layer
+        # 分割模型 
+        NE_layer=list(self.ALL.children())[0:max_index+1]
+        self.NE=nn.Sequential(*NE_layer)
+        NG_layer=list(self.ALL.children())[max_index+1:]
+        self.NG=nn.Sequential(*NG_layer)
+        return max_index
+    def add_head_split(self,split_layer=-1):
+        index=self.split(split_layer)
+        self.NE.add_module('pre_head',self.ee[index])
+        def features(self,x):
+            for name, layer in self.named_children():
+                if name=='pre_head':
+                    break
+                x=layer(x)
+            return x
+        setattr(self.NE, 'features', features.__get__(self.NE))
+        return index
+    def forward(self,x):
+        if not self.NE and not self.NG:
+            x=self.ALL(x)
+        else:
+            
+            x=self.NE(x)
+            x=self.NG(x)
+        return x
+    def early_exit(self,x):
+        y=[]
+        for i,layer in enumerate(self.ALL.children()):
+            x=layer(x)
+            y.append(self.ee[i](x)*self.ws[i])
+
+        return y
+
+
 def count_layers(module, layer_types=None,recursive=False):
     if layer_types is None:
         layer_types = (nn.Module,)

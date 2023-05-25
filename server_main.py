@@ -36,12 +36,12 @@ if __name__ == "__main__":
                         help='path to save prune model (default: current directory)')
     parser.add_argument('--save_server', default='result/server/', type=str, metavar='PATH', #path change
                         help='path to save prune model (default: current directory)')
-    parser.add_argument('--model', default='resnet', type=str, metavar='MODEL',
+    parser.add_argument('--model', default='transformer', type=str, metavar='MODEL',
                         help='whole model:NE+NG')  
     parser.add_argument('--prune', default='default', type=str, metavar='PRUNE',
                         help='model weightlighting:default/channel')           
     ########################Offline Training#########################
-    parser.add_argument('--train-method', default='selfgrow', type=str,
+    parser.add_argument('--train-method', default='fixedsplit', type=str,
                         help='candidates: fixedsplit /selfgrow /autosplit')
     parser.add_argument('--offline-dataset', type=str, default='cifar10',
                         help='training dataset (default: cifar10)')
